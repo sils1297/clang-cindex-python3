@@ -1950,8 +1950,11 @@ class TranslationUnit(ClangObject):
             filename = filename.encode('utf8')
 
         args_array = None
-        if len(args) > 0:
-            args_array = (c_char_p * len(args))(* args)
+        args_length = len(args)
+        if args_length > 0:
+            args = (arg.encode('utf8') if isinstance(arg, str) else arg
+                    for arg in args)
+            args_array = (c_char_p * args_length)(* args)
 
         unsaved_array = None
         if len(unsaved_files) > 0:
@@ -1965,7 +1968,7 @@ class TranslationUnit(ClangObject):
                 unsaved_array[i].length = len(contents)
 
         ptr = conf.lib.clang_parseTranslationUnit(index, filename, args_array,
-                                    len(args), unsaved_array,
+                                    args_length, unsaved_array,
                                     len(unsaved_files), options)
 
         if ptr is None:
